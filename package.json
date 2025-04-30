@@ -1,0 +1,25 @@
+{
+  "name": "football-app",
+  "version": "1.0.0",
+  "description": "web app that gets football stats from various apis",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test2": "npx nodemon --env-file=config/.env app.ts",
+    "start": "npx tsx app.ts"
+  },
+  "type": "module",
+  "author": "Abhay Panchoo",
+  "license": "ISC",
+  "dependencies": {
+    "@types/cli-progress": "^3.11.6",
+    "body-parser": "^2.2.0",
+    "cli-progress": "^3.12.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.13.2",
+    "puppeteer": "^24.7.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "ws": "^8.18.1"
+  }
+}
