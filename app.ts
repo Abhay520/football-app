@@ -131,9 +131,7 @@ const createMatch = async(browser : Browser, matchInfo : string[]) : Promise<Mat
     return null
 }
 
-async function parseTeamInfo(pageLink : string) : Promise<Team>{
-    // Launch the browser
-    const browser = await puppeteer.launch({ headless: false });
+async function parseTeamInfo(pageLink : string, browser : Browser) : Promise<Team>{
     // Open a new tab
     let mainPage = await createNewPage(browser)
     // Visit the page and wait until network connections are completed
@@ -145,29 +143,69 @@ async function parseTeamInfo(pageLink : string) : Promise<Team>{
     let matches : Match[] = new Array
 
     await getAllMatchesFromPage(mainPage).then(async matchInfo => {
-        //setting timeout to prevent too many requests
-        await new Promise(r => setTimeout(r, 3000));
 
         for(let i = 0; i < matchInfo.length; i++){
+            //setting timeout to prevent too many requests
+            await new Promise(r => setTimeout(r, 3000));
             let matchCreated =  await createMatch(browser, matchInfo[i])
             if(matchCreated != null) {
                 matches.push(matchCreated)
             }
         }
-    })
 
-    // Don't forget to close the browser instance to clean up the memory
-    await browser.close().then(() => {console.log("Browser closed");});
+        await mainPage.close()
+    })
     
     return new Team(teamName, matches)
 }
 
-await parseTeamInfo("https://fbref.com/en/squads/5c7eb1c7/Mohun-Bagan-Stats").then((team) => {
-    console.log(team.stats)
-})
-await parseTeamInfo("https://fbref.com/en/squads/3249478a/Goa-Stats").then((team) => {
-    console.log(team.stats)
-})
+const getTeamsPlayingToday = async(browser : Browser) : Promise<string[][]> => {
+
+    let newPage = await createNewPage(browser)
+
+    await newPage.goto("https://fbref.com/en/matches/", { waitUntil: 'domcontentloaded' })
+
+    return await newPage.evaluate(() => {
+        const rows = Array.from(document.querySelectorAll('.stats_table tbody tr'))
+        return Array.from(rows, row => {
+            const columns = row.querySelectorAll('td a') as NodeList
+            let matchArray : string[] = []
+            Array.from(columns, (column)  => {
+                let anchor = column as HTMLAnchorElement
+                if(anchor.href.startsWith("https://fbref.com/en/squads")){
+                    matchArray.push(anchor.href)
+                }
+                return anchor.href
+            });
+            return matchArray;
+        });
+    }).then(async result => {
+        await newPage.close()
+        return result
+    })
+}
+
+const main = async() => {
+    
+    const browser = await puppeteer.launch({ headless: false });
+
+    await getTeamsPlayingToday(browser).then(async(result) => {
+        for(let i = 0; i < result.length; i++){
+            await parseTeamInfo(result[i][0], browser).then((team) => {
+                console.log(team.stats("Home"))
+            })
+            await parseTeamInfo(result[i][1], browser).then((team) => {
+                console.log(team.stats("Away"))
+            })
+        }
+    })
+
+    // Don't forget to close the browser instance to clean up the memory
+    await browser.close().then(() => {console.log("Browser closed");});
+}
+
+await main()
+
 
 
 

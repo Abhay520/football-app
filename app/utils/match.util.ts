@@ -1,18 +1,18 @@
 import { Match } from "../models/match.model"
 
 export enum Stat {
-    GoalsScored,
-    GoalsConceded,
-    Shots,
-    ShotsOnTarget,
-    OpponentShots,
-    OpponentShotsOnTarget,
-    Corners,
-    OpponentCorners,
-    Cards,
-    OpponentCards,
-    TotalGoals,
-    TotalCorners
+    GoalsScored = "gf",
+    GoalsConceded = "ga",
+    Shots = "shots",
+    ShotsOnTarget = "shots on target",
+    OpponentShots = "opponent shots",
+    OpponentShotsOnTarget = "opponent shots on target",
+    Corners = "corners",
+    OpponentCorners = "opponent corners",
+    Cards = "cards",
+    OpponentCards = "opponent cards",
+    TotalGoals = "total goals",
+    TotalCorners = "total corners"
 }
 
 export const matchAlreadyPlayed = (date : Date) : boolean => {
@@ -44,14 +44,11 @@ export const getMatchStatArray = (matches : Match[], statBeingCalculated : Stat,
     for(let i = matches.length -1; i >= 0; i--){
         let match = matches[i]
         let stat = convertStat(match, statBeingCalculated)
-        if(stat == undefined){
-            console.log("Invalid stat in match : ")
-            console.log(match)
-            continue;
-        }
-        if(!venue || match.venue == venue)  {
-            data.push(stat);
-            numberOfMatchesCovered++
+        if(typeof(stat) === "number"){
+            if(!venue || match.venue == venue)  {
+                data.push(stat);
+                numberOfMatchesCovered++
+            }
         }
         if(numberOfMatchesCovered == recentMatches)break
     }

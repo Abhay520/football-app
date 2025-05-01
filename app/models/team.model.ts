@@ -11,29 +11,32 @@ export class Team{
         this.matches = matches
     }
 
-    get stats() : string {
+    public stats(venue : string) : string {
         let result : string = "";
          
         result +=`Number of complete matches covered is ${this.completeMatches}\n`
         result +=`Team name is ${this.name}\n\n`
 
-        result += this.getStats("gf", Stat.GoalsScored)
-        result += this.getStats("ga", Stat.GoalsConceded)
-        result += this.getStats("shots", Stat.Shots)
-        result += this.getStats("shots on target", Stat.ShotsOnTarget)
-        result += this.getStats("opponent shots", Stat.OpponentShots)
-        result += this.getStats("opponenet shots on target", Stat.OpponentShotsOnTarget)
-        result += this.getStats("corners", Stat.Corners)
-        result += this.getStats("opponent corners", Stat.OpponentCorners)
-        result += this.getStats("cards", Stat.Cards)
-        result += this.getStats("opponent cards", Stat.OpponentCards)
-        result += this.getStats("total goals", Stat.TotalGoals)
-        result += this.getStats("total corners", Stat.TotalCorners)
+        result += this.getGoodStats(Stat.GoalsScored, venue)
+        result += this.getGoodStats(Stat.GoalsConceded, venue)
+        result += this.getGoodStats(Stat.Shots, venue)
+        result += this.getGoodStats(Stat.ShotsOnTarget, venue)
+        result += this.getGoodStats(Stat.OpponentShots, venue)
+        result += this.getGoodStats(Stat.OpponentShotsOnTarget, venue)
+        result += this.getGoodStats(Stat.Corners, venue)
+        result += this.getGoodStats(Stat.OpponentCorners, venue)
+        result += this.getGoodStats(Stat.Cards, venue)
+        result += this.getGoodStats(Stat.OpponentCards, venue)
+        result += this.getGoodStats(Stat.TotalGoals, venue)
+        result += this.getGoodStats(Stat.TotalCorners, venue)
 
         result += `% of matches with more cards is ${this.averageCardsPercentages()[0]}\n`
         result += `% of matches with more cards in the last 10 matches is ${this.averageCardsPercentages(undefined, 10)[0]}\n`
-        result += `% of matches with more cards in the last 5 matches at home is ${this.averageCardsPercentages("Home", 5)[0]}\n`
-        result += `% of matches with more cards in the last 5 matches at away is ${this.averageCardsPercentages("Away", 5)[0]}\n`
+        result += `% of matches with more cards in the last 5 matches ${venue} is ${this.averageCardsPercentages(venue, 5)[0]}\n`
+
+        result += `% of matches with more corners is ${this.averageCornersPercentages()[0]}\n`
+        result += `% of matches with more corners in the last 10 matches is ${this.averageCornersPercentages(undefined, 10)[0]}\n`
+        result += `% of matches with more corners in the last 5 matches  ${venue} is ${this.averageCornersPercentages(venue, 5)[0]}\n`
 
         result += this.goalStats
 
@@ -53,20 +56,42 @@ export class Team{
         return result;
     }
 
-    private getStats(statString : string, stat : Stat) : string {
+    private getStats(stat : Stat, venue : string) : string {
         let result = "\n"
-        result +=`avg ${statString} is ${this.calculateStats(stat)[0]}\n`
-        result +=`% variance ${statString} is ${this.calculateStats(stat)[1]}%\n`
-        result +=`avg ${statString} last 10 is ${this.calculateStats(stat, undefined, 10)[0]}\n`
-        result +=`% variance ${statString} last 10 is ${this.calculateStats(stat, undefined, 10)[1]}%\n`
-        result +=`avg ${statString} home is ${this.calculateStats(stat, "Home")[0]}\n`
-        result +=`% variance ${statString} home is ${this.calculateStats(stat, "Home")[1]}%\n`
-        result +=`avg ${statString} home last 5 is ${this.calculateStats(stat, "Home", 5)[0]}\n`
-        result +=`% variance ${statString} home last 5 is ${this.calculateStats(stat, "Home", 5)[1]}%\n`
-        result +=`avg ${statString} away is ${this.calculateStats(stat, "Away")[0]}\n`
-        result +=`% variance ${statString} away is ${this.calculateStats(stat, "Away")[1]}%\n`
-        result +=`avg ${statString} away last 5 is ${this.calculateStats(stat, "Away", 5)[0]}\n`
-        result +=`% variance ${statString} away last 5 is ${this.calculateStats(stat, "Away", 5)[1]}%\n`
+        
+        result +=`avg ${Stat[stat]} is ${this.calculateStats(stat)[0]}\n`
+        result +=`% variance ${Stat[stat]} is ${this.calculateStats(stat)[1]}%\n`
+        result +=`avg ${Stat[stat]} last 10 is ${this.calculateStats(stat, undefined, 10)[0]}\n`
+        result +=`% variance ${Stat[stat]} last 10 is ${this.calculateStats(stat, undefined, 10)[1]}%\n`
+        result +=`avg ${Stat[stat]} ${venue} is ${this.calculateStats(stat, venue)[0]}\n`
+        result +=`% variance ${Stat[stat]} ${venue} is ${this.calculateStats(stat, venue)[1]}%\n`
+        result +=`avg ${Stat[stat]} ${venue} last 5 is ${this.calculateStats(stat, venue, 5)[0]}\n`
+        result +=`% variance ${Stat[stat]} ${venue} last 5 is ${this.calculateStats(stat, venue, 5)[1]}%\n`
+        return result;
+    }
+
+    private getGoodStats(stat : Stat, venue : string) : string {
+        let result = ""
+        let variance = this.calculateStats(stat)[1]
+        if(variance < 70){
+            result +=`avg ${stat} is ${this.calculateStats(stat)[0]}\n`
+            result +=`% variance ${stat} is ${variance}%\n`
+        }
+        variance = this.calculateStats(stat, undefined, 10)[1]
+        if(variance < 70){
+            result +=`avg ${stat} last 10 is ${this.calculateStats(stat, undefined, 10)[0]}\n`
+            result +=`% variance ${stat} last 10 is ${variance}%\n`
+        }
+        variance = this.calculateStats(stat, venue)[1]
+        if(variance < 70){
+            result +=`avg ${stat} ${venue} is ${this.calculateStats(stat, venue)[0]}\n`
+            result +=`% variance ${stat} ${venue} is ${variance}%\n`
+        }
+        variance = this.calculateStats(stat, venue, 5)[1]
+        if(variance < 70){
+            result +=`avg ${stat} ${venue} last 5 is ${this.calculateStats(stat, venue, 5)[0]}\n`
+        result +=`% variance ${stat} ${venue} last 5 is ${variance}%\n`
+        }
         return result;
     }
 
