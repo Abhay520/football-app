@@ -15,6 +15,47 @@ export enum Stat {
     TotalCorners = "total corners"
 }
 
+export const addMatchStats = (match : Match, matchStats : string[][]) => {
+    let foundShots = false; let foundCorners = false;let foundCards = false;
+    for(let i = 0; i < matchStats.length;i++){
+        if(matchStats[i].toString() === "Shots on Target"){
+            foundShots = true;
+            let homeShotArray = matchStats[i+1][0].split(/[\s-]+/)
+            let awayShotArray = matchStats[i+1][1].split(/[\s-]+/)
+            match.setShots(homeShotArray[2], homeShotArray[0], 
+                awayShotArray[4], awayShotArray[2])
+        }
+        else if(matchStats[i].toString() === "Cards"){
+            foundCards = true;
+            let homeCards = matchStats[i+1][0].toString()
+            let awayCards = matchStats[i+1][1].toString()
+            match.setCards(homeCards, awayCards)
+        }
+        else if(matchStats[i].toString() === "Corners"){
+            foundCorners = true;
+            let homeCorners = matchStats[i-1].toString()
+            let awayCorners = matchStats[i+1].toString()
+            match.setCorners(homeCorners, awayCorners)
+        }
+    }
+
+    if(!foundShots){
+        console.log("Match Stats does not have shots on target")
+        console.log("Here is the link and the stats " + match.matchReportLink)
+        console.log(matchStats)
+    }
+    else if(!foundCorners){
+        console.log("Match Stats does not have corners")
+        console.log("Here is the link and the stats " + match.matchReportLink)
+        console.log(matchStats)
+    }
+    else if(!foundCards){
+        console.log("Match Stats does not have cards")
+        console.log("Here is the link and the stats " + match.matchReportLink)
+        console.log(matchStats)
+    }
+}
+
 export const matchAlreadyPlayed = (date : Date) : boolean => {
     let difference = new Date().getTime() - date.getTime()
     return difference > 0

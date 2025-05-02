@@ -17,6 +17,8 @@ export class Team{
         result +=`Number of complete matches covered is ${this.completeMatches}\n`
         result +=`Team name is ${this.name}\n\n`
 
+        result += `Team is playing at ${venue}\n\n`
+
         result += this.getGoodStats(Stat.GoalsScored, venue)
         result += this.getGoodStats(Stat.GoalsConceded, venue)
         result += this.getGoodStats(Stat.Shots, venue)

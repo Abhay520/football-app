@@ -14,5 +14,6 @@ export const createNewPage = async(browser : Browser) : Promise<Page> => {
     let page = await browser.newPage(); 
     await page.setRequestInterception(true);
     page.on('request', (req) => interceptPageRequest(req))
+    page.setDefaultNavigationTimeout(0);
     return page
 }

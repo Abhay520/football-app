@@ -1,7 +1,7 @@
 import puppeteer, { Browser, Page} from 'puppeteer'
 import { Match } from './app/models/match.model';
 import { Team } from './app/models/team.model';
-import { matchAlreadyPlayed } from './app/utils/match.util';
+import { addMatchStats, matchAlreadyPlayed } from './app/utils/match.util';
 import { createNewPage } from './app/utils/page.util';
 
 const getMatchFromPage = async(page : Page, pageLink : string) => {
@@ -64,49 +64,6 @@ const getAllMatchesFromPage = async(page : Page) => {
     })
 }
 
-const addMatchStats = (match : Match, matchStats : string[][]) => {
-    let foundShots = false; let foundCorners = false;let foundCards = false;
-    for(let i = 0; i < matchStats.length;i++){
-        if(matchStats[i].toString() === "Shots on Target"){
-            foundShots = true;
-            let homeShotArray = matchStats[i+1][0].split(/[\s-]+/)
-            let awayShotArray = matchStats[i+1][1].split(/[\s-]+/)
-            match.setShots(homeShotArray[2], homeShotArray[0], 
-                awayShotArray[4], awayShotArray[2])
-        }
-        else if(matchStats[i].toString() === "Cards"){
-            foundCards = true;
-            let homeCards = matchStats[i+1][0].toString()
-            let awayCards = matchStats[i+1][1].toString()
-            match.setCards(homeCards, awayCards)
-        }
-        else if(matchStats[i].toString() === "Corners"){
-            foundCorners = true;
-            let homeCorners = matchStats[i-1].toString()
-            let awayCorners = matchStats[i+1].toString()
-            match.setCorners(homeCorners, awayCorners)
-        }
-    }
-
-    if(!foundShots){
-        console.log("Match Stats does not have shots on target")
-        console.log("Here is the link and the stats " + match.matchReportLink)
-        console.log(matchStats)
-    }
-
-    if(!foundCorners){
-        console.log("Match Stats does not have corners")
-        console.log("Here is the link and the stats " + match.matchReportLink)
-        console.log(matchStats)
-    }
-
-    if(!foundCards){
-        console.log("Match Stats does not have cards")
-        console.log("Here is the link and the stats " + match.matchReportLink)
-        console.log(matchStats)
-    }
-}
-
 const createMatch = async(browser : Browser, matchInfo : string[]) : Promise<Match | null> => {
     //add only matches that have not been played yet
     const matchDate = new Date(matchInfo[0])
@@ -123,8 +80,7 @@ const createMatch = async(browser : Browser, matchInfo : string[]) : Promise<Mat
             return match
         }
         else{
-            console.log("No link available for the following match")
-            console.log(match)
+            console.log("No link available for the match dated " + match.date)
         }
     }
     
@@ -146,7 +102,7 @@ async function parseTeamInfo(pageLink : string, browser : Browser) : Promise<Tea
 
         for(let i = 0; i < matchInfo.length; i++){
             //setting timeout to prevent too many requests
-            await new Promise(r => setTimeout(r, 3000));
+            await new Promise(r => setTimeout(r, 2000));
             let matchCreated =  await createMatch(browser, matchInfo[i])
             if(matchCreated != null) {
                 matches.push(matchCreated)
@@ -159,11 +115,15 @@ async function parseTeamInfo(pageLink : string, browser : Browser) : Promise<Tea
     return new Team(teamName, matches)
 }
 
-const getTeamsPlayingToday = async(browser : Browser) : Promise<string[][]> => {
+const getTeamsPlaying = async(browser : Browser, date? : String) : Promise<string[][]> => {
 
     let newPage = await createNewPage(browser)
+    
+    let url = "https://fbref.com/en/matches/"
 
-    await newPage.goto("https://fbref.com/en/matches/", { waitUntil: 'domcontentloaded' })
+    if(date != undefined) url += date
+
+    await newPage.goto(url, { waitUntil: 'domcontentloaded' })
 
     return await newPage.evaluate(() => {
         const rows = Array.from(document.querySelectorAll('.stats_table tbody tr'))
@@ -189,7 +149,7 @@ const main = async() => {
     
     const browser = await puppeteer.launch({ headless: false });
 
-    await getTeamsPlayingToday(browser).then(async(result) => {
+    await getTeamsPlaying(browser, "2025-05-03").then(async(result) => {
         for(let i = 0; i < result.length; i++){
             await parseTeamInfo(result[i][0], browser).then((team) => {
                 console.log(team.stats("Home"))
