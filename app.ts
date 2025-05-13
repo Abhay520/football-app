@@ -4,16 +4,13 @@ import { Team } from './app/models/team.model';
 import { addMatchStats, matchAlreadyPlayed } from './app/utils/match.util';
 import { createNewPage } from './app/utils/page.util';
 
+
 const getMatchFromPage = async(page : Page, pageLink : string) => {
     await page.goto(pageLink, { waitUntil: 'domcontentloaded' })
     return await page.evaluate(async() => {
         const rows = Array.from(document.querySelectorAll('#team_stats table tbody tr'))
         return Array.from(rows, row => {
-            const headers = row.querySelectorAll('th')
-            let headerArray = Array.from(headers, header => header.innerText);
-
             let columnArray : string[];
-
             //change the array for cards column
             let cardsColumn = row.querySelectorAll('td .cards')
             if(cardsColumn.length != 0){
@@ -26,9 +23,10 @@ const getMatchFromPage = async(page : Page, pageLink : string) => {
                 const columns = row.querySelectorAll('td');
                 columnArray = Array.from(columns, column => column.innerText);
             }
-            if(headers){
-                const newArray = headerArray.concat(columnArray)
-                return newArray
+            const headers = row.querySelectorAll('th')
+            if(headers) {
+                let headerArray = Array.from(headers, header => header.innerText);
+                return headerArray.concat(columnArray)
             }
             else return columnArray;
         });
@@ -36,7 +34,7 @@ const getMatchFromPage = async(page : Page, pageLink : string) => {
         //console.log(matchInfo)
         await page.$$eval("#team_stats_extra", divs => divs.map(div => (div as HTMLElement).innerText))
             .then((extraStats) => {
-                if(extraStats[0])matchInfo = matchInfo.concat(extraStats[0].split("\n"))
+                if(extraStats[0])   matchInfo = matchInfo.concat(extraStats[0].split("\n"))
             })
         //console.log(matchInfo)
         return matchInfo;
@@ -129,6 +127,7 @@ const getTeamsPlaying = async(browser : Browser, date? : String) : Promise<strin
         const rows = Array.from(document.querySelectorAll('.stats_table tbody tr'))
         return Array.from(rows, row => {
             const columns = row.querySelectorAll('td a') as NodeList
+            const columnLink = row.querySelector('th a') as HTMLAnchorElement
             let matchArray : string[] = []
             Array.from(columns, (column)  => {
                 let anchor = column as HTMLAnchorElement
@@ -137,6 +136,9 @@ const getTeamsPlaying = async(browser : Browser, date? : String) : Promise<strin
                 }
                 return anchor.href
             });
+            if(columnLink.href.startsWith("https://fbref.com/en/comps")){
+                matchArray.push(columnLink.href)
+            }
             return matchArray;
         });
     }).then(async result => {
@@ -149,9 +151,15 @@ const main = async() => {
     
     const browser = await puppeteer.launch({ headless: false });
 
-    await getTeamsPlaying(browser, "2025-05-03").then(async(result) => {
+    await getTeamsPlaying(browser, "2025-05-06").then(async(result) => {
         for(let i = 0; i < result.length; i++){
+            let length = result[i].length
+            let competitionName  = result[i][length-1]
+            //if(competitionName != "https://fbref.com/en/comps/52/Premier-Division-Stats") continue;
             await parseTeamInfo(result[i][0], browser).then((team) => {
+                if(competitionName.startsWith("https://fbref.com/en/comps")){
+                    console.log("\n\nCompetition name is " + competitionName + "\n\n")
+                }
                 console.log(team.stats("Home"))
             })
             await parseTeamInfo(result[i][1], browser).then((team) => {

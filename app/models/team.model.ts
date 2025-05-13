@@ -12,99 +12,101 @@ export class Team{
     }
 
     public stats(venue : string) : string {
+
         let result : string = "";
          
         result +=`Number of complete matches covered is ${this.completeMatches}\n`
         result +=`Team name is ${this.name}\n\n`
 
-        result += `Team is playing at ${venue}\n\n`
+        result += `Team is playing at ${venue}`
 
-        result += this.getGoodStats(Stat.GoalsScored, venue)
-        result += this.getGoodStats(Stat.GoalsConceded, venue)
-        result += this.getGoodStats(Stat.Shots, venue)
-        result += this.getGoodStats(Stat.ShotsOnTarget, venue)
-        result += this.getGoodStats(Stat.OpponentShots, venue)
-        result += this.getGoodStats(Stat.OpponentShotsOnTarget, venue)
-        result += this.getGoodStats(Stat.Corners, venue)
-        result += this.getGoodStats(Stat.OpponentCorners, venue)
-        result += this.getGoodStats(Stat.Cards, venue)
-        result += this.getGoodStats(Stat.OpponentCards, venue)
-        result += this.getGoodStats(Stat.TotalGoals, venue)
-        result += this.getGoodStats(Stat.TotalCorners, venue)
+        result += this.goodStats(venue)
 
-        result += `% of matches with more cards is ${this.averageCardsPercentages()[0]}\n`
-        result += `% of matches with more cards in the last 10 matches is ${this.averageCardsPercentages(undefined, 10)[0]}\n`
-        result += `% of matches with more cards in the last 5 matches ${venue} is ${this.averageCardsPercentages(venue, 5)[0]}\n`
+        result += this.cardPercentageStats(venue)
 
-        result += `% of matches with more corners is ${this.averageCornersPercentages()[0]}\n`
-        result += `% of matches with more corners in the last 10 matches is ${this.averageCornersPercentages(undefined, 10)[0]}\n`
-        result += `% of matches with more corners in the last 5 matches  ${venue} is ${this.averageCornersPercentages(venue, 5)[0]}\n`
+        result += this.cornerPercentageStats(venue)
 
-        result += this.goalStats
+        result += this.goalStats(venue)
 
-        result += this.bothStats
+        result += this.bothStats(venue)
 
         return result;
     }
 
-    get goalStats() : string {
+    private goalStats(venue? : string) : string {
         let result = "\n"
         result +=  `%ov1.5 is ${this.percentageGoalsOver(1.5)[0]}\n`
         result +=  `%ov2.5 is ${this.percentageGoalsOver(2.5)[0]}\n`
-        result +=  `%ov1.5 at home last 20 is ${this.percentageGoalsOver(1.5, "Home", 20)[0]}\n`
-        result +=  `%ov1.5 away last 20  is ${this.percentageGoalsOver(1.5, "Away", 20)[0]}\n`
-        result +=  `%ov2.5 at home last 20 is ${this.percentageGoalsOver(2.5, "Home", 20)[0]}\n`
-        result +=  `%ov2.5 away last 20  is ${this.percentageGoalsOver(2.5, "Away", 20)[0]}\n`
+        result +=  `%ov1.5 ${venue} last 10 is ${this.percentageGoalsOver(1.5, venue, 10)[0]}\n`
+        result +=  `%ov2.5 ${venue} last 10 is ${this.percentageGoalsOver(2.5, venue, 10)[0]}\n`
         return result;
     }
 
-    private getStats(stat : Stat, venue : string) : string {
-        let result = "\n"
-        
-        result +=`avg ${Stat[stat]} is ${this.calculateStats(stat)[0]}\n`
-        result +=`% variance ${Stat[stat]} is ${this.calculateStats(stat)[1]}%\n`
-        result +=`avg ${Stat[stat]} last 10 is ${this.calculateStats(stat, undefined, 10)[0]}\n`
-        result +=`% variance ${Stat[stat]} last 10 is ${this.calculateStats(stat, undefined, 10)[1]}%\n`
-        result +=`avg ${Stat[stat]} ${venue} is ${this.calculateStats(stat, venue)[0]}\n`
-        result +=`% variance ${Stat[stat]} ${venue} is ${this.calculateStats(stat, venue)[1]}%\n`
-        result +=`avg ${Stat[stat]} ${venue} last 5 is ${this.calculateStats(stat, venue, 5)[0]}\n`
-        result +=`% variance ${Stat[stat]} ${venue} last 5 is ${this.calculateStats(stat, venue, 5)[1]}%\n`
-        return result;
-    }
-
-    private getGoodStats(stat : Stat, venue : string) : string {
-        let result = ""
-        let variance = this.calculateStats(stat)[1]
-        if(variance < 70){
-            result +=`avg ${stat} is ${this.calculateStats(stat)[0]}\n`
-            result +=`% variance ${stat} is ${variance}%\n`
-        }
-        variance = this.calculateStats(stat, undefined, 10)[1]
-        if(variance < 70){
-            result +=`avg ${stat} last 10 is ${this.calculateStats(stat, undefined, 10)[0]}\n`
-            result +=`% variance ${stat} last 10 is ${variance}%\n`
-        }
-        variance = this.calculateStats(stat, venue)[1]
-        if(variance < 70){
-            result +=`avg ${stat} ${venue} is ${this.calculateStats(stat, venue)[0]}\n`
-            result +=`% variance ${stat} ${venue} is ${variance}%\n`
-        }
-        variance = this.calculateStats(stat, venue, 5)[1]
-        if(variance < 70){
-            result +=`avg ${stat} ${venue} last 5 is ${this.calculateStats(stat, venue, 5)[0]}\n`
-        result +=`% variance ${stat} ${venue} last 5 is ${variance}%\n`
-        }
-        return result;
-    }
-
-    get bothStats() : string {
+    private bothStats(venue : string) : string {
         let result = "\n"
         result +=  `%btts is ${this.percentageBTTS()}\n`
-        result +=  `%btts at home last 20 is ${this.percentageBTTS("Home", 20)}\n`
-        result +=  `%btts away last 20  is ${this.percentageBTTS("Away", 20)}\n`
+        result +=  `%btts ${venue} last 10 is ${this.percentageBTTS(venue, 10)}\n`
         result +=  `%both cards is ${this.percentageBothCards()}\n`
-        result +=  `%both cards at home last 20 is ${this.percentageBothCards("Home", 20)}\n`
-        result +=  `%both cards away last 20  is ${this.percentageBothCards("Away", 20)}\n`
+        result +=  `%both cards ${venue} last 10 is ${this.percentageBothCards(venue, 10)}\n`
+        return result;
+    }
+
+    private completeStats(stat : Stat, venue : string) : string {
+        let result = "\n"
+        result +=`avg ${Stat[stat]} is ${this.calculateStat(stat)[0]}\n`
+        result +=`% variance ${Stat[stat]} is ${this.calculateStat(stat)[1]}%\n`
+        result +=`avg ${Stat[stat]} last 10 is ${this.calculateStat(stat, undefined, 10)[0]}\n`
+        result +=`% variance ${Stat[stat]} last 10 is ${this.calculateStat(stat, undefined, 10)[1]}%\n`
+        result +=`avg ${Stat[stat]} ${venue} is ${this.calculateStat(stat, venue)[0]}\n`
+        result +=`% variance ${Stat[stat]} ${venue} is ${this.calculateStat(stat, venue)[1]}%\n`
+        result +=`avg ${Stat[stat]} ${venue} last 5 is ${this.calculateStat(stat, venue, 5)[0]}\n`
+        result +=`% variance ${Stat[stat]} ${venue} last 5 is ${this.calculateStat(stat, venue, 5)[1]}%\n`
+        return result;
+    }
+
+    private goodStats(venue : string) : string {
+        let result = "\n\n"
+        result += this.goodStat(Stat.GoalsScored, venue)
+        result += this.goodStat(Stat.GoalsConceded, venue)
+        result += this.goodStat(Stat.Shots, venue)
+        result += this.goodStat(Stat.ShotsOnTarget, venue)
+        result += this.goodStat(Stat.OpponentShots, venue)
+        result += this.goodStat(Stat.OpponentShotsOnTarget, venue)
+        result += this.goodStat(Stat.Corners, venue)
+        result += this.goodStat(Stat.OpponentCorners, venue)
+        result += this.goodStat(Stat.Cards, venue)
+        result += this.goodStat(Stat.OpponentCards, venue)
+        result += this.goodStat(Stat.TotalGoals, venue)
+        result += this.goodStat(Stat.TotalCorners, venue)
+        return result;
+    }
+
+    private goodStat(stat : Stat, venue : string) : string {
+        let result = ""
+        let statResult = this.getGoodStat(stat)
+        if(statResult != null) result += statResult
+        statResult = this.getGoodStat(stat, undefined, 15)
+        if(statResult != null) result += statResult
+        statResult = this.getGoodStat(stat, venue)
+        if(statResult != null) result += statResult
+        statResult = this.getGoodStat(stat, venue, 10)
+        if(statResult != null) result += statResult
+        return result;
+    }
+
+    private cardPercentageStats(venue : string) : string {
+        let result = "\n"
+        result += `% of matches with more cards is ${this.averageCardsPercentages()[0]}\n`
+        result += `% of matches with more cards in the last 10 matches is ${this.averageCardsPercentages(undefined, 10)[0]}\n`
+        result += `% of matches with more cards in the last 5 matches ${venue} is ${this.averageCardsPercentages(venue, 5)[0]}\n`
+        return result;
+    }
+
+    private cornerPercentageStats(venue : string) : string {
+        let result = "\n"
+        result += `% of matches with more corners is ${this.averageCornersPercentages()[0]}\n`
+        result += `% of matches with more corners in the last 10 matches is ${this.averageCornersPercentages(undefined, 10)[0]}\n`
+        result += `% of matches with more corners in the last 5 matches  ${venue} is ${this.averageCornersPercentages(venue, 5)[0]}\n`
         return result;
     }
 
@@ -116,11 +118,41 @@ export class Team{
         return completeMatches
     }
 
-    private calculateStats(statBeingCalculated : Stat, venue? : string, recentMatches? : number) : number[] {
+    private calculateStat(statBeingCalculated : Stat, venue? : string, recentMatches? : number) : number[] {
         let dataArray = getMatchStatArray(this.matches, statBeingCalculated, venue, recentMatches)
         let mean = calculateMean(dataArray)
         let variance = calculateVariancePercentage(dataArray)
         return [mean, variance]
+    }
+
+    private getGoodStat(stat : Stat, venue? : string, recentMatches? : number) : string | null {
+        let result = ""
+        let avg = this.calculateStat(stat, venue, recentMatches)[0]
+        let variance = this.calculateStat(stat, venue, recentMatches)[1]
+        if(variance < 70){
+            if(venue == undefined){
+                if(recentMatches == undefined){
+                    result +=`avg ${stat} is ${avg}\n`
+                    result +=`% variance ${stat} is ${variance}%\n`
+                }
+                else{
+                    result +=`avg ${stat} last ${recentMatches} is ${avg}\n`
+                    result +=`% variance ${stat} last ${recentMatches} is ${variance}%\n`
+                }
+            }
+            else{
+                if(recentMatches == undefined){
+                    result +=`avg ${stat} ${venue} is ${avg}\n`
+                    result +=`% variance ${stat} ${venue} is ${variance}%\n`
+                }
+                else{
+                    result +=`avg ${stat} ${venue} last ${recentMatches} is ${avg}\n`
+                    result +=`% variance ${stat} ${venue} last ${recentMatches} is ${variance}%\n`
+                }
+            }
+            return result;
+        }
+        else return null;
     }
 
 
